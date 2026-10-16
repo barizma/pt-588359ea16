@@ -1,6 +1,6 @@
 /* Çevrimdışı çalışma: tüm uygulama dosyaları ilk açılışta önbelleğe alınır.
    Dosyalar değişince CACHE adındaki sürümü artır. */
-var CACHE = "profit-tracker-v2";
+var CACHE = "profit-tracker-v3";
 var FILES = [
   "./", "./index.html", "./style.css", "./core.js", "./i18n.js", "./demo.js", "./app.js",
   "./lang/de.js", "./lang/fr.js", "./lang/es.js", "./lang/it.js", "./lang/pt.js",

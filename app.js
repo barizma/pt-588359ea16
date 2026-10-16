@@ -41,6 +41,16 @@
     });
   }
   function cur() { return S.settings.cur || "$"; }
+  // Dil değişince para simgesi de o ülkenin birimine geçer; müşteri simgeyi kendisi yazdıysa (curManual) dokunulmaz
+  var LANG_CUR = { en: "$", tr: "₺", de: "€", fr: "€", es: "€", it: "€", pt: "€", nl: "€", pl: "zł", ru: "₽", ar: "$" };
+  function applyLangCur(code) {
+    var st = S.settings, c = st.cur || "$";
+    if (st.curManual) return;
+    var isDefault = Object.keys(LANG_CUR).some(function (k) { return LANG_CUR[k] === c; });
+    if (!isDefault) return; // eski kayıtta elle yazılmış başka simge
+    var want = LANG_CUR[code] || "$";
+    if (want !== c) { st.cur = want; save(); }
+  }
   function money(x) { return I18n.money(x, cur()); }
   function shopName() { return S.settings.shop || t("demo.shop"); }
   function today() {
@@ -553,7 +563,7 @@
       case "del-sale": S.sales = S.sales.filter(function (x) { return x.id !== id; }); save(); modal = null; break;
       case "del-exp": S.expenses = S.expenses.filter(function (x) { return x.id !== id; }); save(); modal = null; break;
       case "clear-demo": S.sales = []; S.expenses = []; S.demo = false; save(); break;
-      case "load-demo": S = fresh(); save(); break;
+      case "load-demo": S = fresh(); save(); applyLangCur(I18n.lang); break;
       case "export": download("seller-profit-backup-" + today() + ".json", JSON.stringify(S, null, 1)); return;
       case "import": document.getElementById("impFile").click(); return;
       case "add-ch": S.channels.push({ name: uniqueName(t("set.channelName"), S.channels.map(function (c) { return c.name; })), pct: 0, fixed: 0 }); save(); break;
@@ -598,7 +608,7 @@
     var el = e.target;
     var fk = el.getAttribute("data-f");
     if (fk) { setFilter(fk, el.value); return; }
-    if (el.id === "langSel" || el.id === "langSel2") { I18n.setLang(el.value); render(); return; }
+    if (el.id === "langSel" || el.id === "langSel2") { I18n.setLang(el.value); applyLangCur(I18n.lang); render(); return; }
     if (el.id === "impFile") {
       var file = el.files[0];
       if (!file) return;
@@ -616,7 +626,7 @@
     var set = el.getAttribute("data-set"), st = S.settings;
     if (set) {
       if (set === "shop") st.shop = el.value.trim();
-      else if (set === "cur") st.cur = el.value.trim() || "$";
+      else if (set === "cur") { st.cur = el.value.trim() || LANG_CUR[I18n.lang] || "$"; st.curManual = !!el.value.trim(); }
       else if (set === "year") { var yr = parseInt(el.value, 10); if (yr > 1990 && yr < 2200) st.year = yr; }
       else if (set === "tax") { var tx = parseNum(el.value); if (!isNaN(tx) && tx >= 0 && tx <= 100) st.tax = tx / 100; }
       save(); render(); return;
@@ -658,6 +668,7 @@
     if (l && I18n.LANGS[l]) I18n.setLang(l);
     if (v && SUBS[v] !== undefined || v === "dashboard" || v === "settings") view = v;
     if (s && SUBS[view] && SUBS[view].indexOf(s) >= 0) sub[view] = s;
+    applyLangCur(I18n.lang);
   })();
   render();
 })();
